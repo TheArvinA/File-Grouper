@@ -22,7 +22,7 @@ def organize_files_by_type_and_date(directory, dry_run=True):
         "Images": [".jpg", ".jpeg", ".png", ".gif", ".bmp"],
         "Videos": [".mp4", ".avi", ".mov", ".mkv"],
         "Audio": [".mp3", ".wav", ".aac", ".flac"],
-        "Code": [".py", ".java", ".cpp", ".js", ".html", ".css", ".sh"],
+        "Code": [".py", " .java", ".cpp", ".js", ".html", ".css", ".sh"],
         "Archives": [".zip", ".tar", ".rar", ".7z"],
     }
     
@@ -70,7 +70,11 @@ def organize_files_by_type_and_date(directory, dry_run=True):
         messagebox.showinfo("Success", "Sorting complete!")
 
 def display_results_gui(directory, folder_structure):
-    """Displays the dry-run results in a Tkinter GUI window with grouped folders."""
+    """Displays the dry-run results in a Tkinter GUI window with an option to apply the sorting."""
+    def apply_sorting():
+        result_window.destroy()
+        organize_files_by_type_and_date(directory, dry_run=False)
+    
     result_window = tk.Tk()
     result_window.title("Dry Run Results")
     result_window.geometry("600x400")
@@ -88,8 +92,14 @@ def display_results_gui(directory, folder_structure):
     
     text_area.config(state=tk.DISABLED)  # Make text read-only
     
-    close_button = tk.Button(result_window, text="Close", command=result_window.destroy)
-    close_button.pack(pady=10)
+    button_frame = tk.Frame(result_window)
+    button_frame.pack(pady=10)
+    
+    apply_button = tk.Button(button_frame, text="Apply Sorting", command=apply_sorting)
+    apply_button.pack(side=tk.LEFT, padx=5)
+    
+    close_button = tk.Button(button_frame, text="Close", command=result_window.destroy)
+    close_button.pack(side=tk.RIGHT, padx=5)
     
     result_window.mainloop()
 
