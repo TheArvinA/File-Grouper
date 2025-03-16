@@ -1,8 +1,9 @@
 import os
 import shutil
+import tkinter as tk
+from tkinter import filedialog, scrolledtext
 from datetime import datetime, timedelta
 from pathlib import Path
-from tkinter import filedialog
 
 def get_creation_date(file_path):
     """Returns the creation date of a file."""
@@ -28,6 +29,9 @@ def organize_files_by_type_and_date(directory, dry_run=True):
     # Calculate the threshold date (6 months ago)
     six_months_ago = datetime.now() - timedelta(days=180)
     
+    # Prepare results for GUI display
+    results = []
+    
     # Process each file in the directory
     for file in os.listdir(directory):
         file_path = os.path.join(directory, file)
@@ -49,16 +53,36 @@ def organize_files_by_type_and_date(directory, dry_run=True):
             # Create directories for category and age
             category_folder = os.path.join(directory, category)
             age_folder_path = os.path.join(category_folder, age_folder)
+            destination = os.path.join(age_folder_path, file)
             
             if dry_run:
-                print(f"[Dry Run] Would move: {file} -> {age_folder_path}")
+                results.append(f"{file} -> {age_folder_path}")
             else:
                 os.makedirs(age_folder_path, exist_ok=True)
-                destination = os.path.join(age_folder_path, file)
                 shutil.move(file_path, destination)
-                print(f"Moved: {file} -> {destination}")
+                results.append(f"Moved: {file} -> {destination}")
     
-    print("Sorting complete!")
+    if dry_run:
+        display_results_gui(results)
+    else:
+        print("Sorting complete!")
+
+def display_results_gui(results):
+    """Displays the dry-run results in a Tkinter GUI window."""
+    result_window = tk.Tk()
+    result_window.title("Dry Run Results")
+    result_window.geometry("600x400")
+    
+    text_area = scrolledtext.ScrolledText(result_window, wrap=tk.WORD, width=80, height=20)
+    text_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+    
+    text_area.insert(tk.INSERT, "\n".join(results))
+    text_area.config(state=tk.DISABLED)  # Make text read-only
+    
+    close_button = tk.Button(result_window, text="Close", command=result_window.destroy)
+    close_button.pack(pady=10)
+    
+    result_window.mainloop()
 
 def select_directory():
     """Opens a file dialog to select a directory without requiring Tkinter's main loop."""
