@@ -30,7 +30,7 @@ def organize_files_by_type_and_date(directory, dry_run=True):
     six_months_ago = datetime.now() - timedelta(days=180)
     
     # Prepare results for GUI display
-    results = []
+    folder_structure = {}
     
     # Process each file in the directory
     for file in os.listdir(directory):
@@ -53,22 +53,24 @@ def organize_files_by_type_and_date(directory, dry_run=True):
             # Create directories for category and age
             category_folder = os.path.join(directory, category)
             age_folder_path = os.path.join(category_folder, age_folder)
-            destination = os.path.join(age_folder_path, file)
             
-            if dry_run:
-                results.append(f"{file} -> {age_folder_path}")
-            else:
+            folder_name = os.path.relpath(age_folder_path, directory)
+            
+            if folder_name not in folder_structure:
+                folder_structure[folder_name] = []
+            folder_structure[folder_name].append(file)
+            
+            if not dry_run:
                 os.makedirs(age_folder_path, exist_ok=True)
-                shutil.move(file_path, destination)
-                results.append(f"Moved: {file} -> {destination}")
+                shutil.move(file_path, os.path.join(age_folder_path, file))
     
     if dry_run:
-        display_results_gui(results)
+        display_results_gui(directory, folder_structure)
     else:
         print("Sorting complete!")
 
-def display_results_gui(results):
-    """Displays the dry-run results in a Tkinter GUI window."""
+def display_results_gui(directory, folder_structure):
+    """Displays the dry-run results in a Tkinter GUI window with grouped folders."""
     result_window = tk.Tk()
     result_window.title("Dry Run Results")
     result_window.geometry("600x400")
@@ -76,7 +78,14 @@ def display_results_gui(results):
     text_area = scrolledtext.ScrolledText(result_window, wrap=tk.WORD, width=80, height=20)
     text_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
     
-    text_area.insert(tk.INSERT, "\n".join(results))
+    text_area.insert(tk.INSERT, f"The following folders will be created in {directory} containing your files:\n\n")
+    
+    for folder, files in folder_structure.items():
+        text_area.insert(tk.INSERT, f"Folder: {folder}\n")
+        for file in files:
+            text_area.insert(tk.INSERT, f"    - {file}\n")
+        text_area.insert(tk.INSERT, "\n")
+    
     text_area.config(state=tk.DISABLED)  # Make text read-only
     
     close_button = tk.Button(result_window, text="Close", command=result_window.destroy)
