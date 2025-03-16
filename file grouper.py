@@ -1,7 +1,7 @@
 import os
 import shutil
 import tkinter as tk
-from tkinter import filedialog, scrolledtext
+from tkinter import filedialog, scrolledtext, messagebox
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -13,7 +13,7 @@ def get_creation_date(file_path):
 def organize_files_by_type_and_date(directory, dry_run=True):
     """Scans a directory and sorts files by type and creation date. Supports dry-run mode."""
     if not os.path.exists(directory):
-        print(f"Error: Directory '{directory}' does not exist.")
+        messagebox.showerror("Error", f"Directory '{directory}' does not exist.")
         return
     
     # Define file type categories
@@ -67,7 +67,7 @@ def organize_files_by_type_and_date(directory, dry_run=True):
     if dry_run:
         display_results_gui(directory, folder_structure)
     else:
-        print("Sorting complete!")
+        messagebox.showinfo("Success", "Sorting complete!")
 
 def display_results_gui(directory, folder_structure):
     """Displays the dry-run results in a Tkinter GUI window with grouped folders."""
@@ -94,11 +94,10 @@ def display_results_gui(directory, folder_structure):
     result_window.mainloop()
 
 def select_directory():
-    """Opens a file dialog to select a directory without requiring Tkinter's main loop."""
+    """Opens a file dialog to select a directory and prompts for dry-run mode in a GUI."""
     directory = filedialog.askdirectory(title="Select a Directory to Organize")
     if directory:
-        dry_run_choice = input("Run in dry-run mode? (y/n): ").strip().lower()
-        dry_run = dry_run_choice == "y"
+        dry_run = messagebox.askyesno("Dry Run Mode", "Would you like to run in dry-run mode?")
         organize_files_by_type_and_date(directory, dry_run)
 
 # Run the directory selection
