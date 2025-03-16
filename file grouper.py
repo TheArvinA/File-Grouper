@@ -9,8 +9,8 @@ def get_creation_date(file_path):
     timestamp = os.path.getctime(file_path)
     return datetime.fromtimestamp(timestamp)
 
-def organize_files_by_type_and_date(directory):
-    """Scans a directory and sorts files by type and creation date."""
+def organize_files_by_type_and_date(directory, dry_run=True):
+    """Scans a directory and sorts files by type and creation date. Supports dry-run mode."""
     if not os.path.exists(directory):
         print(f"Error: Directory '{directory}' does not exist.")
         return
@@ -50,12 +50,13 @@ def organize_files_by_type_and_date(directory):
             category_folder = os.path.join(directory, category)
             age_folder_path = os.path.join(category_folder, age_folder)
             
-            os.makedirs(age_folder_path, exist_ok=True)
-            
-            # Move file to the appropriate folder
-            destination = os.path.join(age_folder_path, file)
-            shutil.move(file_path, destination)
-            print(f"Moved: {file} -> {destination}")
+            if dry_run:
+                print(f"[Dry Run] Would move: {file} -> {age_folder_path}")
+            else:
+                os.makedirs(age_folder_path, exist_ok=True)
+                destination = os.path.join(age_folder_path, file)
+                shutil.move(file_path, destination)
+                print(f"Moved: {file} -> {destination}")
     
     print("Sorting complete!")
 
@@ -63,7 +64,9 @@ def select_directory():
     """Opens a file dialog to select a directory without requiring Tkinter's main loop."""
     directory = filedialog.askdirectory(title="Select a Directory to Organize")
     if directory:
-        organize_files_by_type_and_date(directory)
+        dry_run_choice = input("Run in dry-run mode? (y/n): ").strip().lower()
+        dry_run = dry_run_choice == "y"
+        organize_files_by_type_and_date(directory, dry_run)
 
 # Run the directory selection
 select_directory()
